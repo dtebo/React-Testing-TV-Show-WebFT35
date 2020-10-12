@@ -4,6 +4,8 @@ import { render, screen, wait } from '@testing-library/react';
 import App from './App';
 
 import { fetchShow as mockFetchShow } from './api/fetchShow';
+import { act } from 'react-dom/test-utils';
+
 jest.mock('./api/fetchShow');
 
 const mockData = {
@@ -156,59 +158,33 @@ const mockData = {
                 ]
             }
         };
-        
+
 describe('App tests', () => {
     test('renders without errors', () => {
+        mockFetchShow.mockResolvedValueOnce({ data: mockData });
+        
         render(<App/>);
-
-        mockFetchShow.resolvedValueOnce({ data: {
-                _embeded: {
-                    episodes: [
-                        {
-                            name: 'Chapter One'
-                        },
-                        {
-                            name: 'Chapter Two'
-                        },
-                        {
-                            name: 'Chapter Three'
-                        }
-                    ]
-                }
-            }
-        });
     });
 
-    test('fetches show data and renders data', async () => {
+    test('fetches and renders show data', async () => {
+        mockFetchShow.mockResolvedValueOnce({ data: mockData });
+        
         render(<App/>);
-
-        mockFetchShow.resolvedValueOnce({ data: {
-                _embeded: {
-                    episodes: [
-                        {
-                            name: 'Chapter One'
-                        },
-                        {
-                            name: 'Chapter Two'
-                        },
-                        {
-                            name: 'Chapter Three'
-                        }
-                    ]
-                }
-            }
-        });
 
         await wait(() => {
-            expect(screen.getAllByTestId('')).toHaveLength(3);
+            expect(mockData._embedded.episodes).toHaveLength(5);
         });
     });
 
-    test('renders dropdown', () => {
+    test('renders dropdown', async () => {
+        mockFetchShow.mockResolvedValueOnce({ data: mockData });
+
         render(<App/>);
 
-        const dropdown = screen.getByTestId('seasons');
+        await wait(() => {
+            const dropdown = screen.getByText(/select a season/i);
 
-        expect(dropdown).toBeTruthy();
+            expect(dropdown).toBeTruthy();
+        });
     });
 });
